@@ -16,17 +16,15 @@ library LEB128Lib {
             for {} 1 {} {
                 let nextByte := and(x, 0x7f)
                 x := shr(7, x)
-                switch x
-                case 0 {
-                    mstore8(i, nextByte)
-                    i := add(i, 1)
-                    break
-                }
-                default {
+                if x {
                     nextByte := or(nextByte, 0x80)
                     mstore8(i, nextByte)
                     i := add(i, 1)
+                    continue
                 }
+                mstore8(i, nextByte)
+                i := add(i, 1)
+                break
             }
             mstore(result, sub(i, offset))
             mstore(0x40, i)
@@ -44,21 +42,20 @@ library LEB128Lib {
             let i := offset
             for {} 1 {} {
                 let nextByte := and(x, 0x7f)
+                let sign := shr(6, nextByte)
                 x := sar(7, x)
-                switch or(
-                    and(iszero(x), iszero(and(nextByte, 0x40))),
-                    and(iszero(add(x, 1)), iszero(iszero(and(nextByte, 0x40))))
-                )
-                case 1 {
-                    mstore8(i, nextByte)
-                    i := add(i, 1)
-                    break
-                }
-                default {
+                if iszero(or(
+                    and(iszero(x), iszero(sign)),
+                    and(iszero(not(x)), sign)
+                )) {
                     nextByte := or(nextByte, 0x80)
                     mstore8(i, nextByte)
                     i := add(i, 1)
+                    continue
                 }
+                mstore8(i, nextByte)
+                i := add(i, 1)
+                break
             }
             mstore(result, sub(i, offset))
             mstore(0x40, i)
