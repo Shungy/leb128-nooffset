@@ -145,6 +145,7 @@ library LEB128Lib {
     /// @dev Decodes an Unsigned LEB128 encoded value from the beginning of calldata `data`.
     /// Note: Same caveats as `rawDecodeUint` apply.
     /// Note: Reverts if decoding is not completed within the bounds of `data`.
+    /// Note: Reverts if `data.length == 0`.
     /// @return result The decoded unsigned integer value.
     /// @return remainingData Unconsumed part of `data`.
     function decodeUint(bytes calldata data)
@@ -167,6 +168,7 @@ library LEB128Lib {
     /// @dev Decodes a Signed LEB128 encoded value from the beginning of calldata `data`.
     /// Note: Same caveats as `rawDecodeUint` apply.
     /// Note: Reverts if decoding is not completed within the bounds of `data`.
+    /// Note: Reverts if `data.length == 0`.
     /// @return result The decoded signed integer value.
     /// @return remainingData Unconsumed part of `data`.
     function decodeInt(bytes calldata data)
