@@ -17,14 +17,17 @@ contract EncodedCalldataERC20 is ERC20("Token", "TKN") {
         else return hex""; // Means no alternative exists.
     }
 
-    function alternativeEncoding(bytes calldata selector) external pure returns(string memory) {
-        if (selector.length == 1 && (selector[0] == 0x00 || selector[0] == 0x01))
+    function alternativeEncoding(bytes calldata selector) external pure returns (string memory) {
+        if (selector.length == 1 && (selector[0] == 0x00 || selector[0] == 0x01)) {
             return "leb128-nooffset";
+        }
         return "solidity-abi";
     }
 
     fallback(bytes calldata data) external returns (bytes memory) {
-        uint256 to; uint256 amount; uint256 ptr = 1;
+        uint256 to;
+        uint256 amount;
+        uint256 ptr = 1;
         (to, ptr) = ptr.rawDecodeUint();
         (amount, ptr) = ptr.rawDecodeUint();
         if (ptr > data.length) revert();

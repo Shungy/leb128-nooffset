@@ -44,10 +44,7 @@ library LEB128Lib {
                 let nextByte := and(x, 0x7f)
                 let sign := shr(6, nextByte)
                 x := sar(7, x)
-                if iszero(or(
-                    and(iszero(x), iszero(sign)),
-                    and(iszero(not(x)), sign)
-                )) {
+                if iszero(or(and(iszero(x), iszero(sign)), and(iszero(not(x)), sign))) {
                     nextByte := or(nextByte, 0x80)
                     mstore8(i, nextByte)
                     i := add(i, 1)

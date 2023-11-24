@@ -18,13 +18,10 @@ contract EncodedCalldataERC20Test is Test {
         vm.assume(to != address(this));
         vm.assume(to != address(0));
 
-        bytes memory data = abi.encodePacked(
-            hex"00",
-            LEB128Lib.encode(uint160(to)),
-            LEB128Lib.encode(amount)
-        );
+        bytes memory data =
+            abi.encodePacked(hex"00", LEB128Lib.encode(uint160(to)), LEB128Lib.encode(amount));
 
-        (bool result, bytes memory returnData) = address(token).call{ value: 0 }(data);
+        (bool result, bytes memory returnData) = address(token).call{value: 0}(data);
         assertTrue(result);
         assertTrue(abi.decode(returnData, (bool)));
 
@@ -35,13 +32,10 @@ contract EncodedCalldataERC20Test is Test {
         vm.assume(to != address(this));
         vm.assume(to != address(0));
 
-        bytes memory data = abi.encodePacked(
-            hex"01",
-            LEB128Lib.encode(uint160(to)),
-            LEB128Lib.encode(amount)
-        );
+        bytes memory data =
+            abi.encodePacked(hex"01", LEB128Lib.encode(uint160(to)), LEB128Lib.encode(amount));
 
-        (bool result, bytes memory returnData) = address(token).call{ value: 0 }(data);
+        (bool result, bytes memory returnData) = address(token).call{value: 0}(data);
         assertTrue(result);
         assertTrue(abi.decode(returnData, (bool)));
 
