@@ -6,6 +6,6 @@
   "author": "shung <https://github.com/Shungy>",
   "license": "MIT",
   "devDependencies": {
-    "leb128": "0.0.5"
+    "leb128": "0.1.0"
   }
 }
