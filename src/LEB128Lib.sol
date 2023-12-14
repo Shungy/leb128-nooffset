@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-/// @notice Library to encode and decode numbers with LEB128: https://en.wikipedia.org/wiki/LEB128
+/// @notice Library to encode and decode numbers with LEB128
 /// @author shung (https://github.com/Shungy)
 library LEB128Lib {
-    /// @dev Encodes `x` using Unsigned LEB128 algorithm.
-    /// See: https://en.wikipedia.org/wiki/LEB128#Encode_unsigned_integer
+    /// @dev Encodes `x` using unsigned LEB128 algorithm.
+    /// See https://en.wikipedia.org/wiki/LEB128#Encode_unsigned_integer.
     function encode(uint256 x) internal pure returns (bytes memory result) {
         if (x == 0) return result = new bytes(1);
         /// @solidity memory-safe-assembly
@@ -31,8 +31,8 @@ library LEB128Lib {
         }
     }
 
-    /// @dev Encodes `x` using Signed LEB128 algorithm.
-    /// See: https://en.wikipedia.org/wiki/LEB128#Encode_signed_integer
+    /// @dev Encodes `x` using signed LEB128 algorithm.
+    /// See https://en.wikipedia.org/wiki/LEB128#Encode_signed_integer.
     function encode(int256 x) internal pure returns (bytes memory result) {
         if (x == 0) return result = new bytes(1);
         /// @solidity memory-safe-assembly
@@ -59,10 +59,10 @@ library LEB128Lib {
         }
     }
 
-    /// @dev Decodes an Unsigned LEB128 encoded value, starting from calldata `ptr`.
-    /// See: https://en.wikipedia.org/wiki/LEB128#Decode_unsigned_integer
-    /// Note: Anything overflowing is truncated silently without a revert.
-    /// Note: Superfluous zero padding can be used to control the length of the encoded data.
+    /// @dev Decodes an unsigned LEB128 encoded value, starting from calldata `ptr`.
+    /// See https://en.wikipedia.org/wiki/LEB128#Decode_unsigned_integer.
+    /// Note: Anything overflowing 256 bits is truncated silently without a revert.
+    /// Note: Superfluous zero padding can be used to inflate the length of the encoded data.
     function rawDecodeUint(uint256 ptr) internal pure returns (uint256 result, uint256 newPtr) {
         /// @solidity memory-safe-assembly
         assembly {
@@ -70,14 +70,15 @@ library LEB128Lib {
                 let nextByte := byte(0, calldataload(ptr))
                 result := or(result, shl(shift, and(nextByte, 0x7f)))
                 ptr := add(ptr, 1)
-                if iszero(shr(7, nextByte)) { break }
+                if shr(7, nextByte) { continue }
+                break
             }
             newPtr := ptr
         }
     }
 
-    /// @dev Decodes a Signed LEB128 encoded value, starting from calldata `ptr`.
-    /// See: https://en.wikipedia.org/wiki/LEB128#Decode_signed_integer
+    /// @dev Decodes a signed LEB128 encoded value, starting from calldata `ptr`.
+    /// See https://en.wikipedia.org/wiki/LEB128#Decode_signed_integer.
     /// Note: Same caveats as `rawDecodeUint` apply.
     function rawDecodeInt(uint256 ptr) internal pure returns (int256 result, uint256 newPtr) {
         /// @solidity memory-safe-assembly
@@ -87,20 +88,19 @@ library LEB128Lib {
                 result := or(result, shl(shift, and(nextByte, 0x7f)))
                 ptr := add(ptr, 1)
                 shift := add(shift, 7)
-                if iszero(shr(7, nextByte)) {
-                    if and(lt(shift, 256), iszero(iszero(and(nextByte, 0x40)))) {
-                        result := or(result, shl(shift, not(0)))
-                    }
-                    break
+                if shr(7, nextByte) { continue }
+                if and(lt(shift, 256), iszero(iszero(and(nextByte, 0x40)))) {
+                    result := or(result, shl(shift, not(0)))
                 }
+                break
             }
             newPtr := ptr
         }
     }
 
-    /// @dev Decodes an Unsigned LEB128 encoded value, starting from memory `ptr`.
+    /// @dev Decodes an unsigned LEB128 encoded value, starting from memory `ptr`.
     /// Note: Same caveats as `rawDecodeUint` apply.
-    /// Note: It is less optimized than its calldata equivalent `rawDecodeUint`.
+    /// Note: This is less optimized than its calldata equivalent `rawDecodeUint()`.
     function rawMemDecodeUint(uint256 ptr) internal pure returns (uint256 result, uint256 newPtr) {
         /// @solidity memory-safe-assembly
         assembly {
@@ -108,15 +108,16 @@ library LEB128Lib {
                 let nextByte := byte(0, mload(ptr))
                 result := or(result, shl(shift, and(nextByte, 0x7f)))
                 ptr := add(ptr, 1)
-                if iszero(shr(7, nextByte)) { break }
+                if shr(7, nextByte) { continue }
+                break
             }
             newPtr := ptr
         }
     }
 
-    /// @dev Decodes a Signed LEB128 encoded value, starting from memory `ptr`.
+    /// @dev Decodes a signed LEB128 encoded value, starting from memory `ptr`.
     /// Note: Same caveats as `rawDecodeUint` apply.
-    /// Note: It is less optimized than its calldata equivalent `rawDecodeInt`.
+    /// Note: This is less optimized than its calldata equivalent `rawDecodeInt()`.
     function rawMemDecodeInt(uint256 ptr) internal pure returns (int256 result, uint256 newPtr) {
         /// @solidity memory-safe-assembly
         assembly {
@@ -125,18 +126,17 @@ library LEB128Lib {
                 result := or(result, shl(shift, and(nextByte, 0x7f)))
                 ptr := add(ptr, 1)
                 shift := add(shift, 7)
-                if iszero(shr(7, nextByte)) {
-                    if and(lt(shift, 256), iszero(iszero(and(nextByte, 0x40)))) {
-                        result := or(result, shl(shift, not(0)))
-                    }
-                    break
+                if shr(7, nextByte) { continue }
+                if and(lt(shift, 256), iszero(iszero(and(nextByte, 0x40)))) {
+                    result := or(result, shl(shift, not(0)))
                 }
+                break
             }
             newPtr := ptr
         }
     }
 
-    /// @dev Decodes an Unsigned LEB128 encoded value from the beginning of calldata `data`.
+    /// @dev Decodes an unsigned LEB128 encoded value from the beginning of calldata `data`.
     /// Note: Same caveats as `rawDecodeUint` apply.
     /// Note: Reverts if decoding is not completed within the bounds of `data`.
     /// Note: Reverts if `data.length == 0`.
@@ -159,7 +159,7 @@ library LEB128Lib {
         }
     }
 
-    /// @dev Decodes a Signed LEB128 encoded value from the beginning of calldata `data`.
+    /// @dev Decodes a signed LEB128 encoded value from the beginning of calldata `data`.
     /// Note: Same caveats as `rawDecodeUint` apply.
     /// Note: Reverts if decoding is not completed within the bounds of `data`.
     /// Note: Reverts if `data.length == 0`.
@@ -182,8 +182,8 @@ library LEB128Lib {
         }
     }
 
-    /// @dev Decodes an Unsigned LEB128 encoded value from the beginning of memory `data`.
-    /// Note: Memory equivalent of `decodeUint`.
+    /// @dev Decodes an unsigned LEB128 encoded value from the beginning of memory `data`.
+    /// Note: Memory equivalent of `decodeUint()`.
     /// @return result The decoded unsigned integer value.
     /// @return size The length of `data` spent to generate `result`.
     function memDecodeUint(bytes memory data)
@@ -204,8 +204,8 @@ library LEB128Lib {
         if (size > data.length) revert();
     }
 
-    /// @dev Decodes a Signed LEB128 encoded value from the beginning of memory `data`.
-    /// Note: Memory equivalent of `decodeInt`.
+    /// @dev Decodes a signed LEB128 encoded value from the beginning of memory `data`.
+    /// Note: Memory equivalent of `decodeInt()`.
     /// @return result The decoded signed integer value.
     /// @return size The length of `data` spent to generate `result`.
     function memDecodeInt(bytes memory data) internal pure returns (int256 result, uint256 size) {
