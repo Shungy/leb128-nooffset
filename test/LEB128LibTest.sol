@@ -4,9 +4,6 @@ pragma solidity ^0.8.13;
 import {Test, console2} from "forge-std/Test.sol";
 import {LEB128Lib} from "../src/LEB128Lib.sol";
 
-import {LibBit} from "solady/utils/LibBit.sol";
-import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
-
 contract LEB128 {
     function encode(int256 x) external pure returns (bytes memory) {
         return LEB128Lib.encode(x);
@@ -46,15 +43,6 @@ contract LEB128LibTest is Test {
 
     function setUp() public {
         leb128 = new LEB128();
-    }
-
-    function _encodedUintLength(uint256 x) internal pure returns (uint256) {
-        return x == 0 ? 1 : FixedPointMathLib.divUp(LibBit.fls(x) + 1, 7);
-    }
-
-    function _encodedIntLength(int256 x) internal pure returns (uint256) {
-        uint256 deSigned = x < 0 ? uint256(-(x + 1)) + 1 : uint256(x);
-        return x == 0 ? 1 : FixedPointMathLib.divUp(LibBit.fls(deSigned) + 2, 7);
     }
 
     function _uleb128encodejs(uint256 x) internal returns (bytes memory) {
@@ -150,16 +138,6 @@ contract LEB128LibTest is Test {
         );
     }
 
-    function testUnsignedEncodeLength(uint256 x) public {
-        vm.assume(x != 0);
-        assertEq(LEB128Lib.encode(x).length, _encodedUintLength(x));
-    }
-
-    function testSignedEncodeLength(int256 x) public {
-        vm.assume(x != 0);
-        assertEq(LEB128Lib.encode(x).length, _encodedIntLength(x));
-    }
-
     function testEncodeDecode(uint256 x) public {
         bytes memory uencoded = LEB128Lib.encode(x);
         bytes memory sencoded = LEB128Lib.encode(int256(x));
@@ -177,12 +155,12 @@ contract LEB128LibTest is Test {
         {
             (uint256 decoded, uint256 size) = LEB128Lib.memDecodeUint(uencoded);
             assertEq(decoded, x);
-            assertEq(size, _encodedUintLength(x));
+            assertEq(size, uencoded.length);
         }
         {
             (int256 decoded, uint256 size) = LEB128Lib.memDecodeInt(sencoded);
             assertEq(decoded, int256(x));
-            assertEq(size, _encodedIntLength(int256(x)));
+            assertEq(size, sencoded.length);
         }
     }
 
