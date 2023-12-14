@@ -31,6 +31,14 @@ contract LEB128 {
         }
         return LEB128Lib.rawDecodeInt(ptr);
     }
+
+    function decodeUint(bytes calldata input) external pure returns (uint256, bytes calldata) {
+        return LEB128Lib.decodeUint(input);
+    }
+
+    function decodeInt(bytes calldata input) external pure returns (int256, bytes calldata) {
+        return LEB128Lib.decodeInt(input);
+    }
 }
 
 contract LEB128LibTest is Test {
